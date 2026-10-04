@@ -14,3 +14,6 @@ Start the service with:
 
 ```bash
 ./scripts/run.sh
+## Course
+
+INF 345 - Fundamentals of DevOps
