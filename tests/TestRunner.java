@@ -18,7 +18,7 @@ public class TestRunner {
         HttpClient client = HttpClient.newHttpClient();
 
         test(client, port, "/", "Hello from INF 345 Notes API");
-        test(client, port, "/healthz", "OK");
+        test(client, port, "/healthz", "INTENTIONAL_M2_FAILURE");
         test(client, port, "/notes", "Study DevOps");
 
         System.out.println("TESTS: " + passed + "/" + total);
