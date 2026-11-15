@@ -1,0 +1,46 @@
+name: Week 8 and Week 9 labs
+
+on:
+  push:
+    branches: [main]
+    paths: ['week8/**', 'week9/**', '.github/workflows/labs.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  labs:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Start the Kubernetes lab cluster
+        run: |
+          curl -fsSLo kind https://github.com/kubernetes-sigs/kind/releases/download/v0.33.0/kind-linux-amd64
+          echo 'aee6151561422756b764a4ae28e7f44cda5af5a9eead3cc9985112b1de8d8e0d  kind' | sha256sum -c -
+          sudo install -m 0755 kind /usr/local/bin/kind
+          kind create cluster --name inf345 --wait 180s --image kindest/node:v1.37.0@sha256:a1ed56cfb0e7b93589bdf97c8cd566405a265939e3620fc4f5de89adff580ae5
+          kubectl get nodes
+      - name: Diagnose the Week 9 practice incident
+        run: |
+          git clone --quiet https://github.com/inf345/inf345-week9-lab.git "$RUNNER_TEMP/week9-lab"
+          cd "$RUNNER_TEMP/week9-lab"
+          trap 'bash drill/start.sh reset' EXIT
+          bash drill/start.sh 1
+          if timeout 40 bash drill/start.sh check; then
+            echo 'Expected the drill to fail before its repair'
+            exit 1
+          fi
+          kubectl -n drill get pods,services,endpointslices
+          kubectl -n drill describe pods
+          kubectl -n drill get events --sort-by=.lastTimestamp
+          if [[ -f "$GITHUB_WORKSPACE/week9/repair.sh" ]]; then
+            bash "$GITHUB_WORKSPACE/week9/repair.sh"
+            bash drill/start.sh check | tee /dev/stderr | grep -ix ok
+          fi
+      - name: Run Week 8 Deployment, Service, rollout and health exercises
+        if: always() && hashFiles('week8/verify.sh') != ''
+        run: bash week8/verify.sh
