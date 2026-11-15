@@ -11,11 +11,13 @@ public class Main {
     public static void main(String[] args) throws IOException {
         String portEnv = System.getenv("PORT");
         int port = portEnv != null ? Integer.parseInt(portEnv) : 8080;
+        String greeting = System.getenv().getOrDefault("GREETING", "Hello from INF 345 Notes API");
+        String apiKey = System.getenv().getOrDefault("API_KEY", "");
 
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
 
         server.createContext("/", exchange -> {
-            sendResponse(exchange, 200, "Hello from INF 345 Notes API");
+            sendResponse(exchange, 200, greeting);
         });
 
         server.createContext("/healthz", exchange -> {
@@ -30,6 +32,7 @@ public class Main {
         server.start();
 
         System.out.println("Server running on port " + port);
+        System.out.println("API key configured: " + !apiKey.isBlank());
     }
 
     private static void sendResponse(
