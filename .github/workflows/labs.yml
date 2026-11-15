@@ -30,7 +30,9 @@ jobs:
           cd "$RUNNER_TEMP/week9-lab"
           trap 'bash drill/start.sh reset' EXIT
           bash drill/start.sh 1
-          if timeout 40 bash drill/start.sh check; then
+          before=$(timeout 40 bash drill/start.sh check 2>&1 || true)
+          printf '%s\n' "$before"
+          if grep -ixq ok <<< "$before"; then
             echo 'Expected the drill to fail before its repair'
             exit 1
           fi
