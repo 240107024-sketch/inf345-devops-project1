@@ -57,3 +57,15 @@ TESTS: 3/3
 ## Course
 
 INF 345 - Fundamentals of DevOps
+
+## Rollback
+
+Argo CD deploys the `k8s/` folder from the `main` branch and automatically restores the Git state after changes in the cluster. To roll back a deployment, revert the image change in Git:
+
+```bash
+git log --oneline -- k8s/deployment.yaml
+git revert <image-bump-commit>
+git push origin main
+```
+
+For a merge commit, use `git revert -m 1 <merge-commit>`. Argo CD then syncs the previous image. A manual `kubectl rollout undo` is superseded by Argo CD self-healing.
